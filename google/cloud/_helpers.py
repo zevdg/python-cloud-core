@@ -29,6 +29,7 @@ import six
 from six.moves import http_client
 
 import google.auth
+import google.auth.environment_vars
 import google.auth.transport.requests
 from google.protobuf import duration_pb2
 from google.protobuf import timestamp_pb2
@@ -182,6 +183,14 @@ def _determine_default_project(project=None):
     :rtype: str or ``NoneType``
     :returns: Default project if it can be determined.
     """
+    if project is None:
+        try:
+            project = google.auth.environment_vars.get_project_id()
+        except AttributeError:
+            # for compatibility with older versions of google.auth
+            project = os.environ.get(
+                google.auth.environment_vars.PROJECT,
+                os.environ.get(google.auth.environment_vars.LEGACY_PROJECT))
     if project is None:
         _, project = google.auth.default()
     return project
